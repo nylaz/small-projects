@@ -28,5 +28,5 @@ public class Main {
         chatCon.sendToServer("<PRIVATE><FOO><SUPER><"+ b +">");
         chatCon.sendToServer("<LOGOUT><FOO>");
         
-    }    
+    }   
 }

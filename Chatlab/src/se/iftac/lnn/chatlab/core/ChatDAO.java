@@ -21,7 +21,8 @@ public class ChatDAO {
     
     private static final String ADD_CHATUSER = "INSERT INTO ChatUser ( NickName, FullName, UserTypeId, IpAdress, AdditionalInfo) "
             + "VALUES (?,?,?,?,?)";
-    private static final String GET_CHATUSER = "SELECT NickName, FullName, UserTypeId, IpAdress, AdditionalInfo from ChatUser where NickName=?";
+    private static final String GET_CHATUSER = "SELECT NickName, FullName, UserTypeId, IpAdress, AdditionalInfo from ChatUser WHERE NickName=?";
+    private static final String CHECK_USER_EXIST = "SELECT NickName from ChatUser WHERE NickName=?";
     
     private static final String ADD_MESSAGE = "INSERT INTO Message ( MessageDirectionId, MessageTypeId, MessageText) " 
             + "VALUES (?,?,?)";
@@ -40,18 +41,27 @@ public class ChatDAO {
 
     public ChatDAO() throws SQLException, ClassNotFoundException, UnknownHostException, IOException{
             Class.forName("com.mysql.jdbc.Driver");
-            dbConnection = DriverManager.getConnection("jdbc:mysql://localhost/ChatDB?"+ "user=root&password=123456");
+            dbConnection = DriverManager.getConnection("jdbc:mysql://localhost/ChatDB?" + "user=root&password=123456");
     }
 
 
     public void addChatUser(ChatUser user) throws SQLException{
-            PreparedStatement statement = dbConnection.prepareStatement(ADD_CHATUSER);
-            statement.setString(1, user.getNickName());
-            statement.setString(2, user.getFullName());
-            statement.setInt(3, user.getUserType().getTypeId());
-            statement.setString(4, user.getIpAdress());
-            statement.setString(5, user.getAdditionalInfo());
-            statement.execute();
+            if (chatUserExists(user.getNickName())){
+                PreparedStatement statement = dbConnection.prepareStatement(ADD_CHATUSER);
+                statement.setString(1, user.getNickName());
+                statement.setString(2, user.getFullName());
+                statement.setInt(3, user.getUserType().getTypeId());
+                statement.setString(4, user.getIpAdress());
+                statement.setString(5, user.getAdditionalInfo());
+                statement.execute();
+            }
+    }
+    
+    public boolean chatUserExists(String nickName) throws SQLException{
+        PreparedStatement statement = dbConnection.prepareStatement(CHECK_USER_EXIST);
+        statement.setString(1, nickName);
+        ResultSet result = statement.executeQuery();
+        return (result == null) ? false : true;
     }
 
     public ChatUser getChatUser(String nickName) throws Exception{

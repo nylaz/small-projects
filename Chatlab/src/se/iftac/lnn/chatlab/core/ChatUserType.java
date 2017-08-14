@@ -5,41 +5,16 @@
  */
 package se.iftac.lnn.chatlab.core;
 
-/**
- *
- * @author lnn
- */
-public class ChatUserType {
-    
+public enum ChatUserType {
+    SELF(1), FRIEND(2);
+
     private int typeId;
-    private String description;
-    
-    public ChatUserType(int typeId){
-        this.typeId=typeId;
-        if(this.typeId == 1){
-            setDescription("Self");
-        }
-        else if (typeId == 2){
-            setDescription("Friend");
-        }else {
-            throw new IllegalArgumentException();
-        }
+
+    ChatUserType(int typeId) {
+        this.typeId = typeId;
     }
 
     public int getTypeId() {
         return typeId;
     }
-
-    public void setTypeId(int TypeId) {
-        this.typeId = TypeId;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-    
 }

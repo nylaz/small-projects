@@ -5,10 +5,6 @@
  */
 package se.iftac.lnn.chatlab.core;
 
-/**
- *
- * @author lnn
- */
 public class ChatMessage {
     
     private int messageDirectionId;

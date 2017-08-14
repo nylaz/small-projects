@@ -11,49 +11,64 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 
-/**
- *
- * @author lnn
- */
 public class ChatConnection {
     
     private final Socket socket;
     private final OutputStreamWriter out;
     private final BufferedReader in;
-    private final String adress = "chatlab.testbed.se";
-    private final int port = 8000;
-
-
+    private final String address;
+    private final int port;
     
-    public ChatConnection() throws IOException{
-        this.socket = new Socket(adress,port);
-        this.in = new BufferedReader(new InputStreamReader(
-				socket.getInputStream()));
+    public ChatConnection(String address, int port) throws IOException {
+        this.address = address;
+        this.port = port;
+        this.socket = new Socket(address,port);
+        this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         this.out = new OutputStreamWriter(socket.getOutputStream());
             
     }
     
-    public Socket getSocket() {
+    Socket getSocket() {
         return socket;
     }
 
-    public OutputStreamWriter getOut() {
+    OutputStreamWriter getOut() {
         return out;
     }
 
-    public BufferedReader getIn() {
+    BufferedReader getIn() {
         return in;
     }
 
-    public String getAdress() {
-        return adress;
+    String getAddress() {
+        return this.address;
     }
 
-    public int getPort() {
-        return port;
+    int getPort() {
+        return this.port;
     }
 
-    public void sendToServer(String msg) throws IOException {
+    void privateMessage(ChatUser from, ChatUser to, String message) throws IOException {
+        out.write("<PRIVATE><" + from.getNickName() + "><" + to.getNickName() + "><" + message + ">");
+        out.flush();
+    }
+
+    void publicMessage(ChatUser user, String message) throws IOException {
+        out.write("<PUBLIC><" + user.getNickName() + "><" + message + ">");
+        out.flush();
+    }
+
+    void logOut(ChatUser user) throws IOException {
+        out.write("<LOGOUT><" + user.getNickName() + ">");
+        out.flush();
+    }
+
+    void register(ChatUser user) throws IOException {
+        out.write("<REGISTER><" + user.getNickName() + "><" + user.getFullName() + "><" + user.getIpAddress() + "><" + user.getAdditionalInfo() + ">");
+        out.flush();
+    }
+
+    void closeConnection(String msg) throws IOException {
         out.write(msg);
         out.flush();
     }

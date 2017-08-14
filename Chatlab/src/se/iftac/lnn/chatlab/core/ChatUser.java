@@ -5,23 +5,19 @@
  */
 package se.iftac.lnn.chatlab.core;
 
-/**
- *
- * @author lnn
- */
 public class ChatUser {
    
     private String nickName;
     private String fullName;
     private ChatUserType userType;
-    private String ipAdress;
+    private String ipAddress;
     private String additionalInfo;
 
-    public ChatUser(String nickName, String fullName, ChatUserType chatUserType, String ipAdress, String additionalInfo) {
+    public ChatUser(String nickName, String fullName, ChatUserType chatUserType, String ipAddress, String additionalInfo) {
         this.nickName=nickName;
         this.fullName=fullName;
         this.userType=chatUserType;
-        this.ipAdress=ipAdress;
+        this.ipAddress = ipAddress;
         this.additionalInfo=additionalInfo;
     }
 
@@ -50,12 +46,12 @@ public class ChatUser {
         this.fullName = fullName;
     }
 
-    public String getIpAdress() {
-        return ipAdress;
+    public String getIpAddress() {
+        return ipAddress;
     }
 
-    public void setIpAdress(String ipAdress) {
-        this.ipAdress = ipAdress;
+    public void setIpAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
     }
 
     public String getAdditionalInfo() {

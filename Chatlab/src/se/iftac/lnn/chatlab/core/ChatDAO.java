@@ -11,18 +11,20 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 public class ChatDAO {
     
     private static final String ADD_CHATUSER = "INSERT INTO ChatUser ( NickName, FullName, UserTypeId, IpAdress, AdditionalInfo) "
             + "VALUES (?,?,?,?,?)";
-    private static final String GET_CHATUSER = "SELECT NickName, FullName, UserTypeId, IpAdress, AdditionalInfo from ChatUser WHERE NickName=?";
+    private static final String GET_CHATUSER = "SELECT NickName, FullName, UserTypeId, IpAdress, AdditionalInfo FROM ChatUser WHERE NickName=?";
+    private static final String GET_FRIENDS = "SELECT * FROM ChatUser WHERE UserTypeId=2 ORDER BY NickName";
     private static final String CHECK_USER_EXIST = "SELECT NickName from ChatUser WHERE NickName=?";
     private static final String ADD_MESSAGE = "INSERT INTO Message ( MessageDirectionId, MessageTypeId, MessageText) " 
             + "VALUES (?,?,?)";
     private static final String ADD_EVENT = ("INSERT INTO EventLog ( EventTypeId, SenderUserId, ReceiverUserId, MessageId, SessionId) " 
-            + "VALUES (?)");
-    private static final String ADD_SESSION = "INSERT INTO Session ()";
+            + "VALUES (?,?,?,?,?)");
+    private static final String CREATE_SESSION = "INSERT INTO Session ()";
     private static final String ADD_CHAT_MESSAGE = "INSERT INTO Message (MessageDirection, MessageTypeId, MessageText) "
 			+ "VALUES (?;?;?)";
     private static final String ADD_ERROR  = "";
@@ -34,7 +36,7 @@ public class ChatDAO {
 
 
     public void addChatUser(ChatUser user) throws SQLException {
-        if (chatUserExists(user.getNickName())) {
+        if (!chatUserExists(user.getNickName())) {
             PreparedStatement statement = dbConnection.prepareStatement(ADD_CHATUSER);
             statement.setString(1, user.getNickName());
             statement.setString(2, user.getFullName());
@@ -49,7 +51,11 @@ public class ChatDAO {
         PreparedStatement statement = dbConnection.prepareStatement(CHECK_USER_EXIST);
         statement.setString(1, nickName);
         ResultSet result = statement.executeQuery();
-        return (result == null);
+        if (result.next()){
+            return true;
+        } else{
+            return false;
+        }
     }
 
     public void addEvent(ChatEvent event) throws SQLException{
@@ -66,13 +72,19 @@ public class ChatDAO {
         PreparedStatement statement = dbConnection.prepareStatement(GET_CHATUSER);
         statement.setString(1, nickName);
         ResultSet result = statement.executeQuery();
+        ChatUserType type;
         if (result.next()) {
             nickName = result.getString("NickName");
             String fullName = result.getString("FullName");
             int userTypeId = result.getInt("UserTypeId");
+            if (userTypeId == 1){
+               type = ChatUserType.SELF;
+            } else {
+                type = ChatUserType.FRIEND;
+            }
             String ipAdress = result.getString("IpAdress");
             String additionalInfo = result.getString("AdditionalInfo");
-            return new ChatUser(nickName, fullName, ChatUserType.values()[userTypeId], ipAdress, additionalInfo);
+            return new ChatUser(nickName, fullName, type, ipAdress, additionalInfo);
         }
         else {
             throw new Exception("Can't find user.");
@@ -95,5 +107,26 @@ public class ChatDAO {
         PreparedStatement statement = dbConnection.prepareStatement(ADD_ERROR);
         statement.setObject(1, e);
         statement.setString(2, "Error");
+    }
+
+    ArrayList<ChatUser> getFriends()throws SQLException {
+        ArrayList<ChatUser> users = new ArrayList<>();
+        ChatUserType type;
+        PreparedStatement statement = dbConnection.prepareStatement(GET_FRIENDS);
+        ResultSet result = statement.executeQuery();
+        while (result.next()){
+            String nickName = result.getString("NickName");
+            String fullName = result.getString("FullName");
+            int userTypeId = result.getInt("UserTypeId");
+            if (userTypeId == 1){
+                type = ChatUserType.SELF;
+            } else {
+                type = ChatUserType.FRIEND;
+            }
+            String ipAdress = result.getString("IpAdress");
+            String additionalInfo = result.getString("AdditionalInfo");
+            users.add(new ChatUser(nickName, fullName, type, ipAdress,additionalInfo));
+        }
+        return users;
     }
 }

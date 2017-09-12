@@ -17,4 +17,8 @@ public enum ChatUserType {
     public int getTypeId() {
         return typeId;
     }
+
+    public void setTypeId(int typeId){
+        this.typeId=typeId;
+    }
 }

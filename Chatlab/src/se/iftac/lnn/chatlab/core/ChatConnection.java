@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.util.ArrayList;
 
 public class ChatConnection {
     
@@ -55,6 +56,7 @@ public class ChatConnection {
 
     void publicMessage(ChatUser user, String message) throws IOException {
         out.write("<PUBLIC><" + user.getNickName() + "><" + message + ">");
+        System.out.println("PUBLIC: <" + user.getNickName() + "> " + message);
         out.flush();
     }
 
@@ -68,8 +70,4 @@ public class ChatConnection {
         out.flush();
     }
 
-    void closeConnection(String msg) throws IOException {
-        out.write(msg);
-        out.flush();
-    }
 }

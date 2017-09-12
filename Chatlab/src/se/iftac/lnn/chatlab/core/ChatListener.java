@@ -14,10 +14,12 @@ public class ChatListener implements Runnable {
 
     private ChatConnection chatCon;
     private ChatDAO chatDAO;
+    private ChatClient client;
 
-    public ChatListener(ChatConnection con) throws IOException, SQLException {
+    public ChatListener(ChatConnection con, ChatClient client, ChatDAO chatDAO) throws IOException, SQLException {
         this.chatCon = con;
-        this.chatDAO = new ChatDAO();
+        this.client=client;
+        this.chatDAO=chatDAO;
     }
 
     private String parseSegment(ChatConnection con) throws ChatListenerException {
@@ -30,12 +32,12 @@ public class ChatListener implements Runnable {
                 Logger.getLogger(ChatListener.class.getName()).log(Level.SEVERE, null, ex);
                 return "";
             }
-            if ( returnValue != -1 ) {
-                segment += (char)returnValue;
+            if (returnValue != -1) {
+                segment += (char) returnValue;
             } else {
                 throw new ChatListenerException();
             }
-        } while ( ((char)returnValue) != '>' );
+        } while (((char) returnValue) != '>');
         return segment.substring(1, segment.length() - 1);
     }
 
@@ -44,38 +46,35 @@ public class ChatListener implements Runnable {
 
         try {
             while (true) {
-                String tempString = parseSegment(chatCon);
-                System.out.println("charlistener:" + tempString);
-
-                switch (tempString) {
+                String typeOfMsg = parseSegment(chatCon);
+                switch (typeOfMsg) {
                     case "FRIEND": {
                         // <FRIEND><YOURNICKNAME><FULLNAME><IPADDRESS><INFO>
                         String nick = parseSegment(chatCon);
                         String name = parseSegment(chatCon);
                         String ip = parseSegment(chatCon);
                         String info = parseSegment(chatCon);
-
-                        ChatUser user = new ChatUser(nick, name, ChatUserType.FRIEND, ip, info);
                         try {
+                            ChatUser user = new ChatUser(nick, name, ChatUserType.FRIEND, ip, info);
                             chatDAO.addChatUser(user);
-                        } catch (SQLException ex) {
-                            Logger.getLogger(ChatListener.class.getName()).log(Level.SEVERE, null, ex);
+                            client.newLogin(chatDAO.getChatUser(nick));
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
-                        System.out.println("* " + user.getNickName() + " logged on");
-                        //chatWindow.addUser(user);
                         break;
                     }
                     case "PRIVATE": {
                         // <PRIVATE><NICKNAME><Message>
-                        String nick = parseSegment(chatCon); // ?
+                        String nick = parseSegment(chatCon);
                         String msg = parseSegment(chatCon);
                         try {
                             chatDAO.addChatMessage(new ChatMessage(1, 2, msg));
+                            client.newPrivateMessage(nick, msg);
                         } catch (SQLException ex) {
                             Logger.getLogger(ChatListener.class.getName()).log(Level.SEVERE, null, ex);
                         }
-                        System.out.println("PRIVATE: <" + nick + "> " + msg);
-                        //chatWindow.incomingPrivateMessage(nick, msg);
                         break;
                     }
                     case "PUBLIC": {
@@ -84,18 +83,21 @@ public class ChatListener implements Runnable {
                         String msg = parseSegment(chatCon);
                         try {
                             chatDAO.addChatMessage(new ChatMessage(1, 1, msg));
+                            client.newPublicMessage(nick, msg);
                         } catch (SQLException ex) {
                             Logger.getLogger(ChatListener.class.getName()).log(Level.SEVERE, null, ex);
                         }
-                        System.out.println("<" + nick + "> " + msg);
-                        //chatWindow.publicMessage(nick, msg);
                         break;
                     }
                     case "LOGOUT": {
                         // <LOGOUT><YOURNICKNAME>
                         String nick = parseSegment(chatCon);
                         System.out.println("* " + nick + " logged out");
-                        //chatWindow.logOut(nick);
+                        try {
+                            client.newLogout(chatDAO.getChatUser(nick));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
 
